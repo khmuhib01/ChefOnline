@@ -47,6 +47,11 @@ export default function Cart({navigation, route}) {
   const [snackBarErrorMessage, setSnackBarErrorMessage] = useState('');
   const [visibleSnackBar, setVisibleSnackBar] = useState(false);
 
+  const [selectItem, setSelectItem] = useState({});
+
+  const [selectedDiscount, setSelectedDiscount] = useState({});
+  const [selectedOffer, setSelectedOffer] = useState({});
+
   // React.useLayoutEffect(() => {
   //   let text = 'ADD MORE';
   //   if (cart.dish.length == 0) {
@@ -67,6 +72,7 @@ export default function Cart({navigation, route}) {
     setExcludeFrom(cart.excludeFromOffer);
 
     console.log('First Load Not for Discount @@' + cart.excludeFromOffer);
+    // console.log('use 01');
   }, []);
 
   useEffect(() => {}, [restaurant]);
@@ -80,6 +86,7 @@ export default function Cart({navigation, route}) {
       setLocalDiscount(0);
       calculateDiscount();
       calculateOffer();
+      // console.log('use 02');
     }
     // console.warn('called 2');
   }, [cart.subTotal]);
@@ -92,13 +99,15 @@ export default function Cart({navigation, route}) {
     cart.availedDiscount,
     cart.availedOffer,
     localSubTotal,
+    // selectedDiscount,
+    // selectedOffer,
+    // console.log('use 03'),
   ]);
 
   useEffect(() => {
     let temp = cart.subTotal - localDiscount;
     setLocalTotal(temp);
     setExcludeFrom(cart.excludeFromOffer);
-
     let payload = {};
     payload.dish = cart.dish;
     payload.subTotal = cart.subTotal;
@@ -107,13 +116,14 @@ export default function Cart({navigation, route}) {
     payload.availedDiscountAmount = localDiscount;
     payload.badgeCount = cart.badgeCount;
     payload.selectedOrderPolicy = cart.selectedOrderPolicy;
-    payload.availedDiscount = cart.availedDiscount;
-    payload.availedOffer = cart.availedOffer;
+    payload.availedDiscount = selectedDiscount;
+    payload.availedOffer = selectedOffer;
     payload.availedVoucher = cart.availedVoucher;
     payload.selectedPaymentMethod = cart.selectedPaymentMethod;
     payload.scheduleList = cart.scheduleList;
     setCart(payload);
-  }, [localDiscount]);
+    // console.log('use 04');
+  }, [localDiscount, selectedDiscount, selectedOffer]);
 
   const gotoCheckout = () => {
     navigation.navigate('Checkout');
@@ -391,6 +401,7 @@ export default function Cart({navigation, route}) {
             tempAvailableDiscountList.push(restaurant.availableDiscounts[a]);
             if (restaurant.availableDiscounts[a].default == '1') {
               if (cart.availedDiscount.discount_id == undefined) {
+                setCart({});
                 let payload = {};
                 payload.dish = cart.dish;
                 payload.subTotal = cart.subTotal;
@@ -544,6 +555,9 @@ export default function Cart({navigation, route}) {
   };
 
   const onSelectDiscount = discount => {
+    // setCart({});
+    setSelectedDiscount(discount);
+    setSelectedOffer({});
     let payload = {};
     payload.dish = cart.dish;
     payload.subTotal = cart.subTotal;
@@ -552,8 +566,8 @@ export default function Cart({navigation, route}) {
     payload.badgeCount = cart.badgeCount;
     payload.associativeMenuObj = cart.associativeMenuObj;
     payload.selectedOrderPolicy = cart.selectedOrderPolicy;
-    payload.availedDiscount = discount;
-    payload.availedOffer = cart.availedOffer;
+    payload.availedDiscount = selectedDiscount;
+    payload.availedOffer = selectedOffer;
     payload.availedVoucher = cart.availedVoucher;
     payload.selectedPaymentMethod = cart.selectedPaymentMethod;
     payload.scheduleList = cart.scheduleList;
@@ -561,6 +575,9 @@ export default function Cart({navigation, route}) {
   };
 
   const onSelectOffer = offer => {
+    // setCart({});
+    setSelectedOffer(offer);
+    setSelectedDiscount({});
     let payload = {};
     payload.dish = cart.dish;
     payload.subTotal = cart.subTotal;
@@ -569,26 +586,38 @@ export default function Cart({navigation, route}) {
     payload.badgeCount = cart.badgeCount;
     payload.associativeMenuObj = cart.associativeMenuObj;
     payload.selectedOrderPolicy = cart.selectedOrderPolicy;
-    payload.availedDiscount = cart.availedDiscount;
-    payload.availedOffer = offer;
+    payload.availedDiscount = selectedDiscount;
+    payload.availedOffer = selectedOffer;
     payload.availedVoucher = cart.availedVoucher;
     payload.selectedPaymentMethod = cart.selectedPaymentMethod;
     payload.scheduleList = cart.scheduleList;
     setCart(payload);
   };
 
+  /* Old Code */
+
+  // const isDiscountSelected = item => {
+  //   if (cart.availedDiscount.discount_id == item.discount_id) {
+  //     return true;
+  //   }
+  //   return false;
+  // };
+
+  // const isOfferSelected = item => {
+  //   if (cart.availedOffer.id == item.id) {
+  //     return true;
+  //   }
+  //   return false;
+  // };
+
   const isDiscountSelected = item => {
-    if (cart.availedDiscount.discount_id == item.discount_id) {
-      return true;
-    }
-    return false;
+    return (
+      selectedDiscount && selectedDiscount.discount_id === item.discount_id
+    );
   };
 
   const isOfferSelected = item => {
-    if (cart.availedOffer.id == item.id) {
-      return true;
-    }
-    return false;
+    return selectedOffer && selectedOffer.id === item.id;
   };
 
   const onPressProceed = () => {
@@ -814,6 +843,7 @@ export default function Cart({navigation, route}) {
               </Right>
             </Header>
 
+            {/* Order Policy Button */}
             <FlatList
               style={{alignSelf: 'center', marginTop: 5}}
               data={restaurant.availableOrderPolicy}
@@ -842,6 +872,7 @@ export default function Cart({navigation, route}) {
             />
           </View>
 
+          {/* Cart Item Render */}
           <View style={{marginHorizontal: 5}}>
             <Card style={{borderRadius: 10, maxHeight: 250}}>
               <CardItem style={{borderRadius: 10}}>
@@ -856,6 +887,7 @@ export default function Cart({navigation, route}) {
             </Card>
           </View>
 
+          {/* Discount and Offers */}
           <View style={{marginHorizontal: 5}}>
             {availableDiscountList.length > 0 && (
               <Card style={{borderRadius: 10}}>
@@ -934,6 +966,7 @@ export default function Cart({navigation, route}) {
             </Snackbar>
           </View>
 
+          {/* Snackbar */}
           <Snackbar
             style={{backgroundColor: '#ed1a3b', color: '#fff'}}
             visible={localTotal > 0}
